@@ -105,6 +105,24 @@ group messages, so use admin if you need full visibility.
 
 ## Commands (native + custom)
 Moltbot registers native commands (like `/status`, `/reset`, `/model`) with Telegram’s bot menu on startup.
+
+### Overriding command menu descriptions
+You can override **menu descriptions** for existing commands (without renaming the commands):
+
+```json5
+{
+  channels: {
+    telegram: {
+      nativeCommandDescriptionOverrides: {
+        status: "Статус",
+        "/reset": "Сбросить диалог"
+      }
+    }
+  }
+}
+```
+
+### Custom menu commands
 You can add custom commands to the menu via config:
 
 ```json5

@@ -52,6 +52,8 @@ export type TelegramAccountConfig = {
   commands?: ProviderCommandsConfig;
   /** Custom commands to register in Telegram's command menu (merged with native). */
   customCommands?: TelegramCustomCommand[];
+  /** Optional overrides for Telegram bot menu command descriptions (keyed by command name, with or without leading /). */
+  nativeCommandDescriptionOverrides?: Record<string, string>;
   /** Allow channel-initiated config writes (default: true). */
   configWrites?: boolean;
   /**

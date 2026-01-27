@@ -244,6 +244,30 @@ describe("createTelegramBot", () => {
     ]);
   });
 
+  it("applies native command description overrides to the Telegram bot menu", () => {
+    const config = {
+      channels: {
+        telegram: {
+          nativeCommandDescriptionOverrides: {
+            "/status": "Статус (RU)",
+          },
+        },
+      },
+    };
+    loadConfig.mockReturnValue(config);
+
+    createTelegramBot({ token: "tok" });
+
+    const registered = setMyCommandsSpy.mock.calls[0]?.[0] as Array<{
+      command: string;
+      description: string;
+    }>;
+
+    const status = registered.find((command) => command.command === "status");
+    expect(status).toBeDefined();
+    expect(status?.description).toBe("Статус (RU)");
+  });
+
   it("ignores custom commands that collide with native commands", () => {
     const errorSpy = vi.fn();
     const config = {

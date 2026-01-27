@@ -17,6 +17,7 @@ import {
 import { ToolPolicySchema } from "./zod-schema.agent-runtime.js";
 import { ChannelHeartbeatVisibilitySchema } from "./zod-schema.channels.js";
 import {
+  TELEGRAM_COMMAND_NAME_PATTERN,
   normalizeTelegramCommandDescription,
   normalizeTelegramCommandName,
   resolveTelegramCustomCommands,
@@ -84,6 +85,62 @@ const validateTelegramCustomCommands = (
   }
 };
 
+const TelegramNativeCommandDescriptionOverridesSchema = z
+  .record(z.string(), z.string())
+  .superRefine((value, ctx) => {
+    const seen = new Map<string, string>();
+    for (const [rawKey, rawValue] of Object.entries(value)) {
+      const normalizedKey = normalizeTelegramCommandName(rawKey);
+      if (!normalizedKey) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [rawKey],
+          message:
+            "Telegram nativeCommandDescriptionOverrides contains an empty command key.",
+        });
+        continue;
+      }
+      if (!TELEGRAM_COMMAND_NAME_PATTERN.test(normalizedKey)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [rawKey],
+          message: `Telegram nativeCommandDescriptionOverrides command \"/${normalizedKey}\" is invalid (use a-z, 0-9, underscore; max 32 chars).`,
+        });
+        continue;
+      }
+      const description = normalizeTelegramCommandDescription(String(rawValue ?? ""));
+      if (!description) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [rawKey],
+          message: `Telegram nativeCommandDescriptionOverrides command \"/${normalizedKey}\" is missing a description.`,
+        });
+        continue;
+      }
+      const existing = seen.get(normalizedKey);
+      if (existing && existing !== description) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [rawKey],
+          message: `Telegram nativeCommandDescriptionOverrides duplicates \"/${normalizedKey}\" with a different description.`,
+        });
+      } else {
+        seen.set(normalizedKey, description);
+      }
+    }
+  })
+  .transform((value) => {
+    const normalized: Record<string, string> = {};
+    for (const [rawKey, rawValue] of Object.entries(value)) {
+      const key = normalizeTelegramCommandName(rawKey);
+      if (!key) continue;
+      const description = normalizeTelegramCommandDescription(String(rawValue ?? ""));
+      if (!description) continue;
+      normalized[key] = description;
+    }
+    return normalized;
+  });
+
 export const TelegramAccountSchemaBase = z
   .object({
     name: z.string().optional(),
@@ -92,6 +149,7 @@ export const TelegramAccountSchemaBase = z
     enabled: z.boolean().optional(),
     commands: ProviderCommandsSchema,
     customCommands: z.array(TelegramCustomCommandSchema).optional(),
+    nativeCommandDescriptionOverrides: TelegramNativeCommandDescriptionOverridesSchema.optional(),
     configWrites: z.boolean().optional(),
     dmPolicy: DmPolicySchema.optional().default("pairing"),
     botToken: z.string().optional(),

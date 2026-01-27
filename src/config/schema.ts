@@ -293,6 +293,8 @@ const FIELD_LABELS: Record<string, string> = {
   "channels.whatsapp": "WhatsApp",
   "channels.telegram": "Telegram",
   "channels.telegram.customCommands": "Telegram Custom Commands",
+  "channels.telegram.nativeCommandDescriptionOverrides":
+    "Telegram Native Command Description Overrides",
   "channels.discord": "Discord",
   "channels.slack": "Slack",
   "channels.mattermost": "Mattermost",
@@ -623,6 +625,8 @@ const FIELD_HELP: Record<string, string> = {
     "Max reply-back turns between requester and target (0–5).",
   "channels.telegram.customCommands":
     "Additional Telegram bot menu commands (merged with native; conflicts ignored).",
+  "channels.telegram.nativeCommandDescriptionOverrides":
+    "Override Telegram bot menu descriptions for commands (keys may include a leading '/', e.g. '/status'). Does not rename commands.",
   "messages.ackReaction": "Emoji reaction used to acknowledge inbound messages (empty disables).",
   "messages.ackReactionScope":
     'When to send ack reactions ("group-mentions", "group-all", "direct", "all").',

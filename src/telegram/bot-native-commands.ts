@@ -321,11 +321,21 @@ export const registerTelegramNativeCommands = ({
     ...customCommands,
   ];
 
-  if (allCommands.length > 0) {
+  const descriptionOverrides = telegramCfg.nativeCommandDescriptionOverrides ?? {};
+  const menuCommands =
+    Object.keys(descriptionOverrides).length === 0
+      ? allCommands
+      : allCommands.map((command) => {
+          const override = descriptionOverrides[command.command.toLowerCase()];
+          if (!override) return command;
+          return { ...command, description: override };
+        });
+
+  if (menuCommands.length > 0) {
     void withTelegramApiErrorLogging({
       operation: "setMyCommands",
       runtime,
-      fn: () => bot.api.setMyCommands(allCommands),
+      fn: () => bot.api.setMyCommands(menuCommands),
     }).catch(() => {});
 
     if (typeof (bot as unknown as { command?: unknown }).command !== "function") {
